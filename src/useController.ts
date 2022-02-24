@@ -98,12 +98,13 @@ export function useController<
     };
   }, [name, control, isArrayField, shouldUnregister]);
 
+
+
   return {
     field: {
       name,
       value,
-      onChange: React.useCallback(
-        (event) => {
+      onChange: useSafeCallback((event) => {
           _registerProps.current.onChange({
             target: {
               value: getEventValue(event),
@@ -142,4 +143,22 @@ export function useController<
     formState,
     fieldState: control.getFieldState(name, formState),
   };
+}
+
+function useSafeCallback<T extends (...args: any[]) => void>(callback: T, deps: ReadonlyArray<any>) {
+  let deferedCallback = React.useRef<()=>void>();
+  const didMount = React.useRef(false);
+
+  React.useEffect(()=>{
+    didMount.current = true
+    if(deferedCallback.current) {
+      deferedCallback.current()
+      deferedCallback.current = undefined
+    }
+  }, [])
+
+  return React.useCallback((...args: Parameters<T>) => {
+    if(didMount.current) callback(...args)
+    else deferedCallback.current = ()=>callback(...args)
+  }, deps)
 }
