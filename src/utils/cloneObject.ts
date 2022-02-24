@@ -1,6 +1,14 @@
 import isFunction from './isFunction';
 import isObject from './isObject';
 
+interface Cloneable {
+  clone(): this;
+}
+
+function isCloneable(obj: any): obj is Cloneable {
+  return typeof obj.clone === "function"
+}
+
 export default function cloneObject<T>(data: T): T {
   let copy: any;
   const isArray = Array.isArray(data);
@@ -9,7 +17,9 @@ export default function cloneObject<T>(data: T): T {
     copy = new Date(data);
   } else if (data instanceof Set) {
     copy = new Set(data);
-  } else if (isArray || isObject(data)) {
+  } else if (isCloneable(data)){
+    copy = data.clone()
+  } else if (isArray || (isObject(data) && Object.getPrototypeOf(data) === Object.prototype)) {
     copy = isArray ? [] : {};
     for (const key in data) {
       if (isFunction(data[key])) {
