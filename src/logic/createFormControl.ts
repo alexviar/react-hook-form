@@ -850,10 +850,8 @@ export function createFormControl<
   const setError: UseFormSetError<TFieldValues> = (name, error, options) => {
     const ref = ((get(_fields, name, { _f: {} }) as Field)._f || {}).ref;
 
-    set(_formState.errors, name, {
-      ...error,
-      ref,
-    });
+    (error as any)["ref"] = ref;
+    set(_formState.errors, name, error);
 
     _subjects.state.next({
       name,
